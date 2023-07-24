@@ -10,7 +10,7 @@ void print_buffer(char buffer[], int *buff_index);
  * Return: All the printed characters
  *
  */
- 
+
 int _printf(const char *format, ...)
 {
 	int index, printed = 0, printed_char = 0;
@@ -41,7 +41,7 @@ int _printf(const char *format, ...)
 			width = get_width(format, &index, list);
 			precision = get_precision(format, &index, list);
 			++index;
-			printed = handle_print(format, &index, list, buffer,flags, size, width, precision);
+			printed = handle_print(format, &index, list, buffer, flags, size, width, precision);
 			if (printed == -1)
 				return (-1);
 			printed_char += printed;
@@ -58,9 +58,9 @@ int _printf(const char *format, ...)
 /**
  * print_buffer - Function prints the contents of the buffer if exists
  * @buffer: An array of characters
- * @buff_index: Index added to the next chararacter, also represents the length.
+ * @buff_index: Index added to the next chararacter, also represents the length
  */
- 
+
 void print_buffer(char buffer[], int *buff_index)
 {
 	if (*buff_index > 0)
