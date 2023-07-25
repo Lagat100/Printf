@@ -1,142 +1,67 @@
 #include "main.h"
 
+void print_buffer(char buffer[], int *buff_ind);
+
 /**
- * _printf - Custom printf function
- * @format: Format string to be outputted
- * Return: Number of characters printed
+ * _printf - Printf function
+ * @format: format.
+ * Return: Printed chars.
  */
 int _printf(const char *format, ...)
 {
-	int i, count = 0;
-	va_list args;
-
-	va_start(args, format);
+	int i, printed = 0, printed_chars = 0;
+	int flags, width, precision, size, buff_ind = 0;
+	va_list list;
+	char buffer[BUFF_SIZE];
 
 	if (format == NULL)
 		return (-1);
 
-	for (i = 0; format[i] != '\0'; i++)
+	va_start(list, format);
+
+	for (i = 0; format && format[i] != '\0'; i++)
 	{
-		if (format[i] == '%')
+		if (format[i] != '%')
 		{
-			i++;
-			handle_specifier(args, format, i, &count);
+			buffer[buff_ind++] = format[i];
+			if (buff_ind == BUFF_SIZE)
+				print_buffer(buffer, &buff_ind);
+			/* write(1, &format[i], 1);*/
+			printed_chars++;
 		}
 		else
 		{
-			count += custom_putchar(format[i]);
+			print_buffer(buffer, &buff_ind);
+			flags = get_flags(format, &i);
+			width = get_width(format, &i, list);
+			precision = get_precision(format, &i, list);
+			size = get_size(format, &i);
+			++i;
+			printed = handle_print(format, &i, list, buffer,
+				flags, width, precision, size);
+			if (printed == -1)
+				return (-1);
+			printed_chars += printed;
 		}
 	}
 
-	va_end(args);
-	return (count);
+	print_buffer(buffer, &buff_ind);
+
+	va_end(list);
+
+	return (printed_chars);
 }
 
 /**
- * custom_putchar - Prints a character
- * @c: Character to be printed
- * Return: The number of characters printed (i.e., 1)
+ * print_buffer - Prints the contents of the buffer if it exist
+ * @buffer: Array of chars
+ * @buff_ind: Index at which to add next char, represents the length.
  */
-int custom_putchar(char c)
+void print_buffer(char buffer[], int *buff_ind)
 {
-	return (write(1, &c, 1));
-}
+	if (*buff_ind > 0)
+		write(1, &buffer[0], *buff_ind);
 
-/**
- * custom_puts - Custom puts
- * @str: Pointer to array of characters (string)
- * Return: Number of characters printed
- */
-int custom_puts(const char *str)
-{
-	int i = 0;
-
-	for (; str[i] != '\0'; i++)
-		custom_putchar(str[i]);
-
-	/* custom_putchar('\n'); */
-	return (i);
-}
-
-/**
- * handle_specifier - Handles format specifiers for our custom printf
- * @args: Argument list
- * @format: Format string
- * @i: Iterator
- * @count: Return value tracking
- */
-void handle_specifier(va_list args, const char *format, int i, int *count)
-{
-	char parameter;
-	const char *par_str;
-	int par_int;
-
-	switch (format[i])
-	{
-		case 'c':
-			parameter = va_arg(args, int);
-			(*count) += custom_putchar(parameter);
-			break;
-		case 's':
-			par_str = va_arg(args, const char *);
-			if (par_str == NULL)
-			{
-				(*count) += custom_puts("(null)");
-				return;
-			}
-			(*count) += custom_puts(par_str);
-			break;
-		case '%':
-			(*count) += custom_putchar('%');
-			break;
-		case 'd':
-			par_int = va_arg(args, int);
-			(*count) += print_integer(par_int);
-			break;
-		case 'i':
-			par_int = va_arg(args, int);
-			(*count) += print_integer(par_int);
-			break;
-		default:
-			(*count) += custom_putchar('%');
-			(*count) += custom_putchar(format[i]);
-	}
-}
-
-/**
- * print_integer - Prints integers
- * @n: Number to print
- * Return: Number of characters printed
- */
-int print_integer(int n)
-{
-	int i, count = 0;
-	char n_arr[20]; /* Up to 20 digits */
-
-	if (n < 0)
-	{
-		count += custom_putchar('-');
-		n = -n;
-	}
-
-	if (n == 0)
-	{
-		count += custom_putchar('0');
-		return (count);
-	}
-
-	i = 0;
-	while (n > 0)
-	{
-		n_arr[i++] = '0' + n % 10;
-		n /= 10;
-	} /* Printing digits into the array */
-
-	count += i; /* Taking the size of the array */
-
-	while (--i >= 0)
-		custom_putchar(n_arr[i]);
-
-	return (count);
+	*buff_ind = 0;
 }
 
